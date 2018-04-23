@@ -12,6 +12,8 @@ Your existing uploads will be synced to the Minio server automatically.
 
 After provisioning you can browse to http://vagrant.local:4571/ to view the web interface and explore your bucket contents.
 
+![](https://raw.githubusercontent.com/minio/minio/master/docs/screenshots/minio-browser.png)
+
 ## Configuration options
 You can configure the port used by Minio server in your chassis config file.
 ```yaml
