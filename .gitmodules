@@ -1,0 +1,6 @@
+[submodule "modules/minio"]
+	path = modules/minio
+	url = https://github.com/roborourke/puppet-minio.git
+[submodule "modules/remote_file"]
+	path = modules/remote_file
+	url = https://github.com/lwf/puppet-remote_file.git

@@ -1,0 +1,16 @@
+<?php
+/**
+ * This file is managed by puppet, edits will be overwritten on provision.
+ *
+ * Minio configuration for S3 Uploads.
+ */
+
+defined( 'AWS_S3_ENDPOINT' ) or define( 'AWS_S3_ENDPOINT', 'http://' . $_SERVER['HTTP_HOST'] . ':<%= @port %>/' );
+
+defined( 'S3_UPLOADS_BUCKET_URL' ) or define( 'S3_UPLOADS_BUCKET_URL', AWS_S3_ENDPOINT . 'chassis' );
+defined( 'S3_UPLOADS_BUCKET' ) or define( 'S3_UPLOADS_BUCKET', 'chassis' );
+
+// These can be any non falsy value.
+defined( 'S3_UPLOADS_KEY' ) or define( 'S3_UPLOADS_KEY', 'ADMIN' );
+defined( 'S3_UPLOADS_SECRET' ) or define( 'S3_UPLOADS_SECRET', 'PASSWORD' );
+defined( 'S3_UPLOADS_REGION' ) or define( 'S3_UPLOADS_REGION', 'us-east-1' );
