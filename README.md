@@ -3,16 +3,44 @@ A Chassis extension to install and configure the Minio server and client on your
 
 [Minio](https://www.minio.io/) is an open source self-hosted alternative to Amazon S3 with a compatible API.
 
-## Usage
-1. Add this extension to your extensions directory `git clone git@github.com:Chassis/Chassis-Minio.git extensions/chassis-minio`
-2. Run `vagrant provision`.
-3. Copy the `minio-mu-plugin.php` file to your `mu-plugins` directory to get S3 Uploads working.
+## Installation
+
+Via Chassis config:
+
+```
+extensions:
+ - chassis/chassis-minio
+```
+
+Or clone into your extensions directory using git:
+
+```
+git clone --recursive git@github.com:Chassis/Chassis-Minio.git chassis-minio
+```
+
+Run `vagrant provision`.
 
 Your existing uploads will be synced to the Minio server automatically.
 
-After provisioning you can browse to http://vagrant.local:4571/ to view the web interface and explore your bucket contents.
+## Usage
+
+### File Browser
+
+After provisioning you can browse to [http://vagrant.local/minio/](http://vagrant.local/minio/) to view the web interface and explore your bucket contents.
 
 ![](https://raw.githubusercontent.com/minio/minio/master/docs/screenshots/minio-browser.png)
+
+### Synchronising Minio and file system uploads 
+
+You can sync Minio and your file system uploads directory at any time by re-provisioning the VM.
+
+Alternatively you can run:
+
+```
+vagrant ssh -c 'mc mirror local/chassis/uploads /vagrant/content/uploads'
+```
+
+To learn more about the commands available to interact with Minio check out the [Minio Client documentation](https://docs.minio.io/docs/minio-client-complete-guide).
 
 ## Configuration options
 You can configure the port used by Minio server in your chassis config file.

@@ -5,12 +5,25 @@
  * Minio configuration for S3 Uploads.
  */
 
+$minio_scheme = isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+
 defined( 'AWS_S3_ENDPOINT' ) or define( 'AWS_S3_ENDPOINT', 'http://' . $_SERVER['HTTP_HOST'] . ':<%= @port %>/' );
 
-defined( 'S3_UPLOADS_BUCKET_URL' ) or define( 'S3_UPLOADS_BUCKET_URL', AWS_S3_ENDPOINT . 'chassis' );
+defined( 'S3_UPLOADS_BUCKET_URL' ) or define( 'S3_UPLOADS_BUCKET_URL', $minio_scheme . '://' . $_SERVER['HTTP_HOST'] . '/s3/chassis' );
 defined( 'S3_UPLOADS_BUCKET' ) or define( 'S3_UPLOADS_BUCKET', 'chassis' );
 
 // These can be any non falsy value.
 defined( 'S3_UPLOADS_KEY' ) or define( 'S3_UPLOADS_KEY', 'ADMIN' );
 defined( 'S3_UPLOADS_SECRET' ) or define( 'S3_UPLOADS_SECRET', 'PASSWORD' );
 defined( 'S3_UPLOADS_REGION' ) or define( 'S3_UPLOADS_REGION', 'us-east-1' );
+
+// Filter S3 Uploads params.
+$GLOBALS['wp_filter']['s3_uploads_s3_client_params'][10]['minio'] = array(
+	'function'      => function ( $params ) {
+		$params['endpoint'] = AWS_S3_ENDPOINT;
+		$params['use_path_style_endpoint'] = true;
+		$params['debug'] = false; // Set to true if uploads are failing.
+		return $params;
+	},
+	'accepted_args' => 1,
+);

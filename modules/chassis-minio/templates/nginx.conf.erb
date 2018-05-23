@@ -1,0 +1,13 @@
+# Pass minio connections through nginx.
+
+location /s3/ {
+    proxy_pass http://127.0.0.1:<%= @port %>/;
+    proxy_ssl_verify off;
+    proxy_buffering off;
+}
+
+location /minio/ {
+    proxy_pass http://127.0.0.1:<%= @port %>/minio/;
+    proxy_ssl_verify off;
+    proxy_buffering off;
+}

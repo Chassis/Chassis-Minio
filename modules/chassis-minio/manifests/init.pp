@@ -5,14 +5,25 @@ class chassis-minio (
 
   # Default settings for install
   $defaults = {
-    'port' => 4571,
-    'sync' => true,
+    'port'  => 4571,
+    'sync'  => true,
+    'debug' => false,
   }
 
   # Allow override from config.yaml
-  $options = deep_merge($defaults, $config[fakes3])
+  $options = deep_merge($defaults, $config[minio])
 
   if ( !empty($config[disabled_extensions]) and 'chassis/chassis-minio' in $config[disabled_extensions] ) {
+
+    # Reverse sync back to uploads
+    exec { "mc mirror local/chassis/uploads ${content}/uploads":
+      command => "/usr/local/bin/mc mirror local/chassis/uploads ${content}/uploads",
+      user    => 'vagrant',
+      onlyif  => "/usr/bin/test -d ${content}/uploads",
+      require => [
+        Exec['mc mb local/chassis'],
+      ],
+    }
 
     class { 'minio':
       package_ensure => 'absent'
@@ -31,7 +42,11 @@ class chassis-minio (
     }
 
     file { '/vagrant/extensions/chassis-minio/local-config.php':
-      ensure => 'absent'
+      ensure => 'absent',
+    }
+
+    file { "/etc/nginx/sites-available/${fqdn}.d/minio.nginx.conf":
+      ensure => 'absent',
     }
 
   } else {
@@ -90,7 +105,7 @@ class chassis-minio (
 
     $content = $config[mapped_paths][content]
 
-    # Sync existing uploads
+    # Sync existing uploads both ways
     exec { "mc mirror ${content}/uploads local/chassis/uploads":
       command => "/usr/local/bin/mc mirror ${content}/uploads local/chassis/uploads",
       user    => 'vagrant',
@@ -98,12 +113,23 @@ class chassis-minio (
       require => [
         Exec['mc mb local/chassis'],
       ],
+    } ->
+    exec { "mc mirror local/chassis/uploads ${content}/uploads":
+      command => "/usr/local/bin/mc mirror local/chassis/uploads ${content}/uploads",
+      user    => 'vagrant',
     }
 
     # Configure WP
     file { '/vagrant/extensions/chassis-minio/local-config.php':
       ensure  => 'present',
       content => template('chassis-minio/local-config.php.erb'),
+    }
+
+    # Configure nginx
+    file { "/etc/nginx/sites-available/${fqdn}.d/minio.nginx.conf":
+      ensure  => 'present',
+      content => template('chassis-minio/nginx.conf.erb'),
+      notify  => Service['nginx'],
     }
 
   }
