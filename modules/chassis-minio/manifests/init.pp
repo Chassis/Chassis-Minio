@@ -15,30 +15,10 @@ class chassis-minio (
 
   if ( !empty($config[disabled_extensions]) and 'chassis/chassis-minio' in $config[disabled_extensions] ) {
 
-    # Reverse sync back to uploads
-    exec { "mc mirror local/chassis/uploads ${content}/uploads":
-      command => "/usr/local/bin/mc mirror local/chassis/uploads ${content}/uploads",
-      user    => 'vagrant',
-      onlyif  => "/usr/bin/test -d ${content}/uploads",
-      require => [
-        Exec['mc mb local/chassis'],
-      ],
-    }
-
-    class { 'minio':
-      package_ensure => 'absent'
-    }
-
-    file { '/home/vagrant/mc':
-      ensure => 'absent',
-    }
-
-    file { '/usr/local/bin/mc':
-      ensure => 'absent',
-    }
-
-    file { '/home/vagrant/.mc':
-      ensure => 'absent',
+    service { "minio file system sync":
+      ensure   => 'stopped',
+      provider => 'base',
+      binary   => "/usr/local/bin/mc mirror -w local/chassis/uploads ${content}/uploads",
     }
 
     file { '/vagrant/extensions/chassis-minio/local-config.php':
@@ -47,6 +27,12 @@ class chassis-minio (
 
     file { "/etc/nginx/sites-available/${fqdn}.d/minio.nginx.conf":
       ensure => 'absent',
+      notify => Service['nginx'],
+    }
+
+    service { 'minio':
+      ensure => 'stopped',
+      enable => false,
     }
 
   } else {
@@ -113,10 +99,13 @@ class chassis-minio (
       require => [
         Exec['mc mb local/chassis'],
       ],
-    } ->
-    exec { "mc mirror local/chassis/uploads ${content}/uploads":
-      command => "/usr/local/bin/mc mirror local/chassis/uploads ${content}/uploads",
-      user    => 'vagrant',
+    }
+
+    service { "minio file system sync":
+      ensure   => 'running',
+      provider => 'base',
+      binary   => "/usr/local/bin/mc mirror -w local/chassis/uploads ${content}/uploads",
+      require  => Exec["mc mirror ${content}/uploads local/chassis/uploads"]
     }
 
     # Configure WP
