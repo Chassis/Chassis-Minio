@@ -1,4 +1,4 @@
-# A Chassis extension to install and configure Fake S3
+# A Chassis extension to install and configure Minio Server and client
 class chassis-minio (
   $config,
 ) {
@@ -86,6 +86,7 @@ class chassis-minio (
     } ->
     exec { 'mc policy public local/chassis':
       command => '/usr/local/bin/mc policy public local/chassis',
+      user    => 'vagrant',
       unless  => '/usr/local/bin/mc policy local/chassis | grep "public"',
     }
 
@@ -96,9 +97,7 @@ class chassis-minio (
       command => "/usr/local/bin/mc mirror ${content}/uploads local/chassis/uploads",
       user    => 'vagrant',
       onlyif  => "/usr/bin/test -d ${content}/uploads",
-      require => [
-        Exec['mc mb local/chassis'],
-      ],
+      require => Exec['mc mb local/chassis'],
     }
 
     service { "minio file system sync":
