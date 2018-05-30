@@ -15,10 +15,8 @@ class chassis-minio (
 
   if ( !empty($config[disabled_extensions]) and 'chassis/chassis-minio' in $config[disabled_extensions] ) {
 
-    service { "minio file system sync":
-      ensure   => 'stopped',
-      provider => 'base',
-      binary   => "/usr/local/bin/mc mirror -w local/chassis/uploads ${content}/uploads",
+    exec { "stop minio sync":
+      command => 'killall -9 mc'
     }
 
     file { '/vagrant/extensions/chassis-minio/local-config.php':
@@ -75,36 +73,53 @@ class chassis-minio (
       ensure  => 'present',
       content => template('chassis-minio/config.json.erb'),
       owner   => 'vagrant',
+    } ->
+    file { '/root/.mc':
+      ensure => 'directory',
+    } ->
+    file { '/root/.mc/config.json':
+      ensure  => 'present',
+      content => template('chassis-minio/config.json.erb'),
     }
+
 
     # Create default bucket.
     exec { 'mc mb local/chassis':
       command => "/usr/local/bin/mc mb local/chassis",
-      user    => 'vagrant',
       unless  => "/usr/local/bin/mc ls local/chassis",
       require => Exec['mc'],
     } ->
     exec { 'mc policy public local/chassis':
       command => '/usr/local/bin/mc policy public local/chassis',
-      user    => 'vagrant',
       unless  => '/usr/local/bin/mc policy local/chassis | grep "public"',
     }
 
     $content = $config[mapped_paths][content]
 
     # Sync existing uploads both ways
-    exec { "mc mirror ${content}/uploads local/chassis/uploads":
-      command => "/usr/local/bin/mc mirror ${content}/uploads local/chassis/uploads",
-      user    => 'vagrant',
-      onlyif  => "/usr/bin/test -d ${content}/uploads",
-      require => Exec['mc mb local/chassis'],
+    file { 'minio static uploads directory':
+      path   => "${content}/uploads",
+      ensure => 'directory',
+      owner  => 'vagrant',
     }
 
-    service { "minio file system sync":
+    exec { "mc mirror ${content}/uploads local/chassis/uploads":
+      command => "/usr/local/bin/mc mirror ${content}/uploads local/chassis/uploads",
+      onlyif  => "/usr/bin/test -d ${content}/uploads",
+      require => [
+        Exec['mc mb local/chassis'] ,
+        File['minio static uploads directory'],
+      ],
+    }
+
+    service { "minio sync service":
       ensure   => 'running',
+      enable   => true,
       provider => 'base',
-      binary   => "/usr/local/bin/mc mirror -w local/chassis/uploads ${content}/uploads",
-      require  => Exec["mc mirror ${content}/uploads local/chassis/uploads"]
+      start    => "/usr/local/bin/mc mirror -w local/chassis/uploads ${content}/uploads &>/dev/null &",
+      stop     => 'killall -9 mc',
+      require  => Exec["mc mirror ${content}/uploads local/chassis/uploads"],
+      status   => "ps -ef | grep '\\/bin\\/mc'",
     }
 
     # Configure WP
