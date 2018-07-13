@@ -16,7 +16,8 @@ class chassis-minio (
   if ( !empty($config[disabled_extensions]) and 'chassis/chassis-minio' in $config[disabled_extensions] ) {
 
     exec { "stop minio sync":
-      command => 'killall -9 mc'
+      command => '/usr/bin/killall -9 mc',
+      onlyif  => '/bin/ps -ef | grep \'[m]c mirror\''
     }
 
     file { '/vagrant/extensions/chassis-minio/local-config.php':
