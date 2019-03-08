@@ -15,7 +15,7 @@ class chassis-minio (
 
   if ( !empty($config[disabled_extensions]) and 'chassis/chassis-minio' in $config[disabled_extensions] ) {
 
-    exec { "stop minio sync":
+    exec { 'stop minio sync':
       command => '/usr/bin/killall -9 mc',
       onlyif  => '/bin/ps -ef | grep \'[m]c mirror\''
     }
@@ -24,7 +24,7 @@ class chassis-minio (
       ensure => 'absent',
     }
 
-    file { "/etc/nginx/sites-available/${fqdn}.d/minio.nginx.conf":
+    file { "/etc/nginx/sites-available/${::fqdn}.d/minio.nginx.conf":
       ensure => 'absent',
       notify => Service['nginx'],
     }
@@ -58,39 +58,38 @@ class chassis-minio (
       unless  => '/usr/bin/test -f mc',
       cwd     => '/home/vagrant',
       require => [ Service['minio'] ],
-    } ->
-    exec { '/bin/chmod +x mc':
+    }
+    -> exec { '/bin/chmod +x mc':
       cwd    => '/home/vagrant',
       unless => '/usr/bin/test `which mc`'
-    } ->
-    exec { '/bin/ln -sf /home/vagrant/mc /usr/local/bin/mc':
+    }
+    -> exec { '/bin/ln -sf /home/vagrant/mc /usr/local/bin/mc':
       unless => '/usr/bin/test `which mc`',
-    } ->
-    file { '/home/vagrant/.mc':
+    }
+    -> file { '/home/vagrant/.mc':
       ensure => 'directory',
       owner  => 'vagrant',
-    } ->
-    file { '/home/vagrant/.mc/config.json':
+    }
+    -> file { '/home/vagrant/.mc/config.json':
       ensure  => 'present',
       content => template('chassis-minio/config.json.erb'),
       owner   => 'vagrant',
-    } ->
-    file { '/root/.mc':
+    }
+    -> file { '/root/.mc':
       ensure => 'directory',
-    } ->
-    file { '/root/.mc/config.json':
+    }
+    -> file { '/root/.mc/config.json':
       ensure  => 'present',
       content => template('chassis-minio/config.json.erb'),
     }
 
-
     # Create default bucket.
     exec { 'mc mb local/chassis':
-      command => "/usr/local/bin/mc mb local/chassis",
-      unless  => "/usr/local/bin/mc ls local/chassis",
+      command => '/usr/local/bin/mc mb local/chassis',
+      unless  => '/usr/local/bin/mc ls local/chassis',
       require => Exec['mc'],
-    } ->
-    exec { 'mc policy public local/chassis':
+    }
+    -> exec { 'mc policy public local/chassis':
       command => '/usr/local/bin/mc policy public local/chassis',
       unless  => '/usr/local/bin/mc policy local/chassis | grep "public"',
     }
@@ -99,8 +98,8 @@ class chassis-minio (
 
     # Sync existing uploads both ways
     file { 'minio static uploads directory':
-      path   => "${content}/uploads",
       ensure => 'directory',
+      path   => "${content}/uploads",
       owner  => 'vagrant',
     }
 
@@ -113,7 +112,7 @@ class chassis-minio (
       ],
     }
 
-    service { "minio sync service":
+    service { 'minio sync service':
       ensure   => 'running',
       enable   => true,
       provider => 'base',
@@ -130,7 +129,7 @@ class chassis-minio (
     }
 
     # Configure nginx
-    file { "/etc/nginx/sites-available/${fqdn}.d/minio.nginx.conf":
+    file { "/etc/nginx/sites-available/${::fqdn}.d/minio.nginx.conf":
       ensure  => 'present',
       content => template('chassis-minio/nginx.conf.erb'),
       notify  => Service['nginx'],
