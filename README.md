@@ -9,13 +9,13 @@ Via Chassis config:
 
 ```
 extensions:
- - chassis/chassis-minio
+ - chassis/chassis_minio
 ```
 
 Or clone into your extensions directory using git:
 
 ```
-git clone --recursive git@github.com:Chassis/Chassis-Minio.git chassis-minio
+git clone --recursive git@github.com:Chassis/Chassis_Minio.git chassis_minio
 ```
 
 Run `vagrant provision`.
