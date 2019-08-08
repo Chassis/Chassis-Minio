@@ -1,5 +1,5 @@
 # A Chassis extension to install and configure Minio Server and client
-class chassis-minio (
+class chassis_minio (
   $config,
 ) {
 
@@ -13,14 +13,14 @@ class chassis-minio (
   # Allow override from config.yaml
   $options = deep_merge($defaults, $config[minio])
 
-  if ( !empty($config[disabled_extensions]) and 'chassis/chassis-minio' in $config[disabled_extensions] ) {
+  if ( !empty($config[disabled_extensions]) and 'chassis/chassis_minio' in $config[disabled_extensions] ) {
 
     exec { 'stop minio sync':
       command => '/usr/bin/killall -9 mc',
       onlyif  => '/bin/ps -ef | grep \'[m]c mirror\''
     }
 
-    file { '/vagrant/extensions/chassis-minio/local-config.php':
+    file { '/vagrant/extensions/chassis_minio/local-config.php':
       ensure => 'absent',
     }
 
@@ -72,7 +72,7 @@ class chassis-minio (
     }
     -> file { '/home/vagrant/.mc/config.json':
       ensure  => 'present',
-      content => template('chassis-minio/config.json.erb'),
+      content => template('chassis_minio/config.json.erb'),
       owner   => 'vagrant',
     }
     -> file { '/root/.mc':
@@ -80,7 +80,7 @@ class chassis-minio (
     }
     -> file { '/root/.mc/config.json':
       ensure  => 'present',
-      content => template('chassis-minio/config.json.erb'),
+      content => template('chassis_minio/config.json.erb'),
     }
 
     # Create default bucket.
@@ -123,15 +123,15 @@ class chassis-minio (
     }
 
     # Configure WP
-    file { '/vagrant/extensions/chassis-minio/local-config.php':
+    file { '/vagrant/extensions/chassis_minio/local-config.php':
       ensure  => 'present',
-      content => template('chassis-minio/local-config.php.erb'),
+      content => template('chassis_minio/local-config.php.erb'),
     }
 
     # Configure nginx
     file { "/etc/nginx/sites-available/${::fqdn}.d/minio.nginx.conf":
       ensure  => 'present',
-      content => template('chassis-minio/nginx.conf.erb'),
+      content => template('chassis_minio/nginx.conf.erb'),
       notify  => Service['nginx'],
     }
 
