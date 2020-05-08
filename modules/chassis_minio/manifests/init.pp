@@ -99,12 +99,12 @@ class chassis_minio (
     # Sync existing uploads both ways
     file { 'minio static uploads directory':
       ensure => 'directory',
-      path   => "${content}/uploads",
+      path   => "${content}/uploads/",
       owner  => 'vagrant',
     }
 
-    exec { "mc mirror ${content}/uploads local/chassis/uploads":
-      command => "/usr/local/bin/mc mirror ${content}/uploads local/chassis/uploads",
+    exec { "mc mirror ${content}/uploads/ local/chassis/uploads/":
+      command => "/usr/local/bin/mc mirror ${content}/uploads/ local/chassis/uploads/",
       onlyif  => "/usr/bin/test -d ${content}/uploads",
       require => [
         Exec['mc mb local/chassis'] ,
@@ -116,9 +116,9 @@ class chassis_minio (
       ensure   => 'running',
       enable   => true,
       provider => 'base',
-      start    => "/usr/local/bin/mc mirror -w local/chassis/uploads ${content}/uploads &>/dev/null &",
+      start    => "/usr/local/bin/mc mirror -w local/chassis/uploads/ ${content}/uploads &>/dev/null &",
       stop     => 'killall -9 mc',
-      require  => Exec["mc mirror ${content}/uploads local/chassis/uploads"],
+      require  => Exec["mc mirror ${content}/uploads/ local/chassis/uploads/"],
       status   => "ps -ef | grep '\\/bin\\/mc'",
     }
 
